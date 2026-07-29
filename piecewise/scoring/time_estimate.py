@@ -52,6 +52,7 @@ def estimate_time(difficulty_score, num_pieces):
         return f"{h:.1f}h"
 
     return {
+        "estimated_hours": round(estimated, 1),
         "best_case_hours": round(lower, 1),
         "worst_case_hours": round(upper, 1),
         "range_hours": f"{fmt(lower)} – {fmt(upper)}",

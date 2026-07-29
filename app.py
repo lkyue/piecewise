@@ -8,12 +8,18 @@ import plotly.graph_objects as go
 from PIL import Image
 
 from piecewise.analyser import analyze
-
-st.set_page_config(
-    page_title="Piecewise",
-    page_icon="🧩",
-    layout="wide",
-    initial_sidebar_state="expanded",
+from piecewise.i18n import (
+    t,
+    level_label,
+    dim_label,
+    cluster_label,
+    pattern_label,
+    sharpness_label,
+    texture_label,
+    color_label,
+    piece_bracket_label,
+    CUT_OPTIONS,
+    BACK_OPTIONS,
 )
 
 LEVEL_COLORS = {
@@ -24,32 +30,36 @@ LEVEL_COLORS = {
     "Very Hard": "#7c3aed",
 }
 
-DIM_LABELS = {
-    "pieces": "Pieces Count",
-    "color_richness": "Color Richness",
-    "color_clustering": "Color Clustering",
-    "texture": "Texture",
-    "pattern_repetition": "Pattern Repetition",
-    "sharpness": "Sharpness",
-    "cut_shape": "Cut Shape",
-    "backside": "Backside Hints",
-    "blind": "Blind Puzzle",
-}
+# --- init session ---
+if "lang" not in st.session_state:
+    st.session_state.lang = "zh"
 
-CUT_OPTIONS = {
-    "Ribbon Cut (规则切割)": "ribbon",
-    "Random Cut (随机切割)": "random",
-    "Shaped / Irregular (异形切割)": "irregular",
-}
-BACK_OPTIONS = {
-    "None (无背面提示)": "none",
-    "Alphabet Zones (字母分区)": "alphabet",
-    "Pattern / Picture (背面图案)": "pattern",
-}
+lang = st.session_state.lang
 
 
-def dimension_chart(dimensions):
-    labels = [DIM_LABELS.get(k, k) for k in dimensions]
+def toggle_lang():
+    st.session_state.lang = "en" if st.session_state.lang == "zh" else "zh"
+
+
+st.set_page_config(
+    page_title=t("title", lang),
+    page_icon="🧩",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+with st.sidebar:
+    st.button(
+        "🇨🇳 中文" if lang == "en" else "🇬🇧 English",
+        on_click=toggle_lang,
+        use_container_width=True,
+    )
+
+# --- helpers ---
+
+
+def dimension_chart(dimensions, lang):
+    labels = [dim_label(k, lang) for k in dimensions]
     values = list(dimensions.values())
     colors = [
         "#ef4444" if v > 1.4 else "#f97316" if v > 1.0 else "#22c55e" for v in values
@@ -72,7 +82,7 @@ def dimension_chart(dimensions):
         height=360,
         margin=dict(l=10, r=60, t=10, b=10),
         xaxis=dict(
-            title="Difficulty Factor",
+            title=t("xaxis_title", lang),
             range=[0, max(values) * 1.3 + 0.1],
         ),
         yaxis=dict(autorange="reversed"),
@@ -81,122 +91,137 @@ def dimension_chart(dimensions):
     return fig
 
 
-def image_features_table(result):
+def feature_rows(result, lang):
     c = result["image_analysis"]["color"]
     cl = result["image_analysis"]["clustering"]
-    t = result["image_analysis"]["texture"]
+    tx = result["image_analysis"]["texture"]
     pat = result["image_analysis"]["pattern"]
     sh = result["image_analysis"]["sharpness"]
 
     return [
         {
-            "Feature": "Color Richness",
-            "Value": f"{c['significant_hues']} hues (sat={c['saturation_ratio']:.2f})",
-            "Level": c["level"],
-            "Factor": f"{c['difficulty_factor']:.2f}",
+            t("feature_col", lang): dim_label("color_richness", lang),
+            t(
+                "value_col", lang
+            ): f"{c['significant_hues']} {t('hues', lang)} ({t('sat', lang)}={c['saturation_ratio']:.2f})",
+            t("level_col", lang): color_label(c["level"], lang),
+            t("factor_col", lang): f"{c['difficulty_factor']:.2f}",
         },
         {
-            "Feature": "Color Clustering",
-            "Value": f"ΔE = {cl['mean_adjacent_color_diff']:.1f} ({cl['region_count']} regions)",
-            "Level": cl["level"],
-            "Factor": f"{cl['difficulty_factor']:.2f}",
+            t("feature_col", lang): dim_label("color_clustering", lang),
+            t(
+                "value_col", lang
+            ): f"ΔE = {cl['mean_adjacent_color_diff']:.1f} ({cl['region_count']} {t('regions', lang)})",
+            t("level_col", lang): cluster_label(cl["level"], lang),
+            t("factor_col", lang): f"{cl['difficulty_factor']:.2f}",
         },
         {
-            "Feature": "Texture",
-            "Value": f"edges {t['edge_density']:.4f}, entropy {t['texture_entropy']:.3f}",
-            "Level": f"{t['edge_level']} / {t['texture_level']}",
-            "Factor": f"{t['difficulty_factor']:.3f}",
+            t("feature_col", lang): dim_label("texture", lang),
+            t(
+                "value_col", lang
+            ): f"{t('edges', lang)}={tx['edge_density']:.4f}, {t('entropy', lang)}={tx['texture_entropy']:.3f}",
+            t(
+                "level_col", lang
+            ): f"{texture_label(tx['edge_level'], lang)} / {texture_label(tx['texture_level'], lang)}",
+            t("factor_col", lang): f"{tx['difficulty_factor']:.3f}",
         },
         {
-            "Feature": "Pattern Repetition",
-            "Value": f"periodicity peak = {pat['periodicity_peak']:.4f}",
-            "Level": pat["level"],
-            "Factor": f"{pat['difficulty_factor']:.2f}",
+            t("feature_col", lang): dim_label("pattern_repetition", lang),
+            t(
+                "value_col", lang
+            ): f"{t('periodicity_peak', lang)} = {pat['periodicity_peak']:.4f}",
+            t("level_col", lang): pattern_label(pat["level"], lang),
+            t("factor_col", lang): f"{pat['difficulty_factor']:.2f}",
         },
         {
-            "Feature": "Sharpness",
-            "Value": f"Laplacian variance = {sh['laplacian_variance']:.1f}",
-            "Level": sh["level"],
-            "Factor": f"{sh['difficulty_factor']:.2f}",
+            t("feature_col", lang): dim_label("sharpness", lang),
+            t(
+                "value_col", lang
+            ): f"{t('lap_var', lang)} = {sh['laplacian_variance']:.1f}",
+            t("level_col", lang): sharpness_label(sh["level"], lang),
+            t("factor_col", lang): f"{sh['difficulty_factor']:.2f}",
         },
     ]
 
 
-def meta_features_table(result):
-    m = result["meta_analysis"]
+def meta_rows(result, lang):
     p = result["piece_analysis"]
+    m = result["meta_analysis"]
     return [
         {
-            "Attribute": "Piece Count",
-            "Value": f"{p['num_pieces']} ({p['bracket']})",
-            "Base Difficulty": f"{p['base_difficulty']:.3f}",
+            t("attr_col", lang): dim_label("pieces", lang),
+            t(
+                "value_col", lang
+            ): f"{p['num_pieces']} ({piece_bracket_label(p['bracket'], lang)})",
+            t("base_diff_col", lang): f"{p['base_difficulty']:.3f}",
         },
         {
-            "Attribute": "Cut Shape",
-            "Value": m["cut_shape"]["label"],
-            "Factor": f"{m['cut_shape']['difficulty_factor']:.2f}",
+            t("attr_col", lang): dim_label("cut_shape", lang),
+            t("value_col", lang): m["cut_shape"]["label"],
+            t("base_diff_col", lang): f"{m['cut_shape']['difficulty_factor']:.2f}",
         },
         {
-            "Attribute": "Backside",
-            "Value": m["backside"]["label"],
-            "Factor": f"{m['backside']['difficulty_factor']:.2f}",
+            t("attr_col", lang): dim_label("backside", lang),
+            t("value_col", lang): m["backside"]["label"],
+            t("base_diff_col", lang): f"{m['backside']['difficulty_factor']:.2f}",
         },
         {
-            "Attribute": "Reference Image",
-            "Value": m["blind"]["label"],
-            "Factor": f"{m['blind']['difficulty_factor']:.2f}",
+            t("attr_col", lang): dim_label("blind", lang),
+            t("value_col", lang): m["blind"]["label"],
+            t("base_diff_col", lang): f"{m['blind']['difficulty_factor']:.2f}",
         },
     ]
 
 
-# --- UI ---
-
-st.title("🧩 Piecewise")
-st.caption(
-    "Jigsaw Puzzle Difficulty Analyzer — estimate difficulty & completion time from the box image."
-)
+# --- Sidebar ---
 
 with st.sidebar:
-    st.header("Parameters")
+    st.header(t("sidebar_header", lang))
 
     uploaded = st.file_uploader(
-        "Puzzle image",
+        t("upload_label", lang),
         type=["jpg", "jpeg", "png", "webp"],
-        help="Upload the puzzle box / reference image.",
+        help=t("upload_help", lang),
     )
 
     pieces = st.number_input(
-        "Number of pieces",
+        t("pieces_label", lang),
         min_value=30,
         max_value=50000,
         value=1000,
         step=100,
-        help="Total piece count of the puzzle.",
+        help=t("pieces_help", lang),
     )
 
-    cut_label = st.selectbox("Piece cut type", list(CUT_OPTIONS))
-    cut = CUT_OPTIONS[cut_label]
+    cut_opts = CUT_OPTIONS[lang]
+    cut_label = st.selectbox(t("cut_label", lang), list(cut_opts))
+    cut = cut_opts[cut_label]
 
-    back_label = st.selectbox("Backside hints", list(BACK_OPTIONS))
-    back = BACK_OPTIONS[back_label]
+    back_opts = BACK_OPTIONS[lang]
+    back_label = st.selectbox(t("back_label", lang), list(back_opts))
+    back = back_opts[back_label]
 
-    blind = st.checkbox("Blind puzzle (no reference image)")
+    blind = st.checkbox(t("blind_label", lang))
 
-    analyze_btn = st.button("Analyze Puzzle", type="primary", width="stretch")
+    analyze_btn = st.button(
+        t("analyze_btn", lang), type="primary", use_container_width=True
+    )
 
-# --- Main content ---
+# --- Main ---
 
 if not analyze_btn and "result" not in st.session_state:
-    st.info("Upload a puzzle image, set parameters, and click **Analyze Puzzle**.")
+    st.title(f"🧩 {t('title', lang)}")
+    st.caption(t("subtitle", lang))
+    st.info(t("placeholder_title", lang))
     st.image(
         "https://placehold.co/600x400/e2e8f0/64748b?text=Puzzle+Image+Preview",
-        caption="Preview will appear here",
+        caption=t("preview_caption", lang),
         width="stretch",
     )
 
 if analyze_btn:
     if not uploaded:
-        st.error("Please upload a puzzle image first.")
+        st.error(t("no_image_error", lang))
     else:
         with tempfile.NamedTemporaryFile(
             suffix=Path(uploaded.name).suffix, delete=False
@@ -204,7 +229,7 @@ if analyze_btn:
             tmp.write(uploaded.getvalue())
             tmp_path = tmp.name
 
-        with st.spinner("Analyzing puzzle..."):
+        with st.spinner(t("analyzing", lang)):
             try:
                 result = analyze(
                     image_path=tmp_path,
@@ -216,7 +241,7 @@ if analyze_btn:
                 st.session_state.result = result
                 st.session_state.image = uploaded
             except Exception as e:
-                st.error(f"Analysis failed: {e}")
+                st.error(f"{t('analysis_failed', lang)}: {e}")
                 st.stop()
             finally:
                 Path(tmp_path).unlink(missing_ok=True)
@@ -224,72 +249,81 @@ if analyze_btn:
 if "result" in st.session_state:
     result = st.session_state.result
     d = result["difficulty"]
-    t = result["time_estimate"]
+    te = result["time_estimate"]
     img = st.session_state.image
+
+    st.title(f"🧩 {t('title', lang)}")
+    st.caption(t("subtitle", lang))
 
     col_img, col_score = st.columns([2, 3])
 
     with col_img:
         st.image(
             Image.open(img),
-            caption=f"Uploaded puzzle image",
+            caption=t("uploaded_caption", lang),
             width="stretch",
         )
 
     with col_score:
-        level = d["level"]
-        color = LEVEL_COLORS.get(level, "#6b7280")
+        level_en = d["level"]
+        level_display = level_label(level_en, lang)
+        color = LEVEL_COLORS.get(level_en, "#6b7280")
 
         st.markdown(
             f"""
         <div style='display:flex; gap:24px; align-items:flex-start; margin-bottom:16px;'>
           <div style='text-align:center;'>
             <div style='font-size:64px; font-weight:800; color:{color}; line-height:1.1;'>{d["total_difficulty"]:.3f}</div>
-            <div style='font-size:14px; color:#94a3b8;'>Difficulty Score</div>
+            <div style='font-size:14px; color:#94a3b8;'>{t("score_label", lang)}</div>
           </div>
           <div style='text-align:center;'>
-            <div style='font-size:48px; font-weight:700; background:{color}; color:white; padding:4px 20px; border-radius:8px; display:inline-block;'>{level}</div>
-            <div style='font-size:14px; color:#94a3b8;'>Level</div>
+            <div style='font-size:48px; font-weight:700; background:{color}; color:white; padding:4px 20px; border-radius:8px; display:inline-block;'>{level_display}</div>
+            <div style='font-size:14px; color:#94a3b8;'>{t("level_label", lang)}</div>
           </div>
         </div>
         """,
             unsafe_allow_html=True,
         )
 
-        st.metric("Estimated Time", t["range_hours"])
+        est = te["estimated_hours"]
+        est_display = f"{est * 60:.0f} min" if est < 1 else f"{est:.1f}h"
+        st.metric(f"⏱ {t('time_label', lang)}", est_display)
+
+        col_range_header, _, _ = st.columns([2, 1, 1])
+        col_range_header.caption(t("time_range_label", lang))
         col_best, col_worst = st.columns(2)
-        col_best.metric("Best Case", f"{t['best_case_hours']:.1f} h")
-        col_worst.metric("Worst Case", f"{t['worst_case_hours']:.1f} h")
+        col_best.metric(t("best_case_label", lang), f"{te['best_case_hours']:.1f} h")
+        col_worst.metric(t("worst_case_label", lang), f"{te['worst_case_hours']:.1f} h")
 
     st.divider()
-    st.subheader("Difficulty Breakdown")
+    st.subheader(t("breakdown_title", lang))
 
     st.plotly_chart(
-        dimension_chart(d["dimensions"]),
+        dimension_chart(d["dimensions"], lang),
         width="stretch",
         config={"displayModeBar": False},
     )
 
-    col_img_features, col_meta = st.columns(2)
+    col_f, col_m = st.columns(2)
 
-    with col_img_features:
-        st.caption("Image Features")
+    with col_f:
+        st.caption(t("img_features_caption", lang))
         st.dataframe(
-            image_features_table(result),
+            feature_rows(result, lang),
             width="stretch",
             hide_index=True,
             column_config={
-                "Feature": st.column_config.TextColumn(width="small"),
-                "Value": st.column_config.TextColumn(width="medium"),
-                "Level": st.column_config.TextColumn(width="small"),
-                "Factor": st.column_config.TextColumn(width="small"),
+                t("feature_col", lang): st.column_config.TextColumn(width="small"),
+                t("value_col", lang): st.column_config.TextColumn(width="medium"),
+                t("level_col", lang): st.column_config.TextColumn(width="small"),
+                t("factor_col", lang): st.column_config.TextColumn(width="small"),
             },
         )
 
-    with col_meta:
-        st.caption("Puzzle Metadata")
+    with col_m:
+        st.caption(t("meta_caption", lang))
         st.dataframe(
-            meta_features_table(result),
+            meta_rows(result, lang),
             width="stretch",
             hide_index=True,
         )
