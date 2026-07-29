@@ -1,0 +1,72 @@
+weights:
+  pieces: 0.25
+  color_richness: 0.18
+  color_clustering: 0.16
+  texture: 0.10
+  pattern_repetition: 0.08
+  sharpness: 0.05
+  cut_shape: 0.07
+  backside: 0.06
+  blind: 0.05
+
+# difficulty_factor for each cut shape type (multiplier on base score)
+cut_shape_factors:
+  ribbon: 1.15
+  random: 0.90
+  irregular: 0.70
+
+# difficulty_factor for backside hint types
+backside_factors:
+  none: 1.0
+  alphabet: 0.75
+  pattern: 0.50
+
+# blind puzzle penalty (multiplier)
+blind_penalty: 1.40
+
+# piece count model: difficulty = (n / reference_pieces) ^ exponent
+piece_model:
+  reference_pieces: 500
+  exponent: 0.35
+
+# time estimation reference values (hours for 500 pieces at baseline difficulty)
+time_base:
+  easy: 2.5
+  moderate: 4.0
+  challenging: 6.5
+  very_hard: 10.0
+
+# time scaling by piece count (multiplier relative to 500)
+time_piece_scaling:
+  100: 0.3
+  300: 0.6
+  500: 1.0
+  750: 1.8
+  1000: 3.0
+  1500: 5.5
+  2000: 9.0
+  3000: 17.0
+  4000: 28.0
+  5000: 40.0
+
+# color richness bins by significant hue count
+color_richness_bins:
+  minimal: [0, 6]
+  low: [6, 15]
+  moderate: [15, 30]
+  high: [30, 180]
+
+# pattern repetition bins by periodicity peak
+pattern_repetition_bins:
+  unique: [0, 0.05]
+  slightly_repetitive: [0.05, 0.15]
+  moderately_repetitive: [0.15, 0.30]
+  highly_repetitive: [0.30, 1.0]
+
+# sharpness bins by Laplacian variance
+sharpness_bins:
+  very_blurry: [0, 20]
+  blurry: [20, 60]
+  normal: [60, 150]
+  sharp: [150, 400]
+  very_sharp: [400, 999999]
