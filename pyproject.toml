@@ -20,6 +20,7 @@ piecewise = "piecewise.cli:main"
 
 [project.optional-dependencies]
 dev = ["pytest>=7", "pytest-cov>=4"]
+ui = ["streamlit>=1.28", "plotly>=5.18"]
 
 [tool.setuptools.packages.find]
 include = ["piecewise*"]
