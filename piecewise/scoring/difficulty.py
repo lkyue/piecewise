@@ -4,11 +4,11 @@
 def compute_difficulty(feature_dims, weights):
     total = sum(feature_dims[k] * weights.get(k, 0.0) for k in feature_dims)
 
-    if total < 0.8:
+    if total < 0.75:
         level = "Easy"
-    elif total < 1.2:
+    elif total < 1.15:
         level = "Moderate"
-    elif total < 1.7:
+    elif total < 1.60:
         level = "Challenging"
     else:
         level = "Very Hard"

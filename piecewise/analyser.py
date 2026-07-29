@@ -59,15 +59,15 @@ def analyze(
     }
 
     default_weights = {
-        "pieces": 0.25,
-        "color_richness": 0.18,
-        "color_clustering": 0.16,
-        "texture": 0.10,
-        "pattern_repetition": 0.08,
-        "sharpness": 0.05,
-        "cut_shape": 0.07,
-        "backside": 0.06,
-        "blind": 0.05,
+        "pieces": 0.10,
+        "color_richness": 0.24,
+        "color_clustering": 0.21,
+        "texture": 0.13,
+        "pattern_repetition": 0.12,
+        "sharpness": 0.07,
+        "cut_shape": 0.06,
+        "backside": 0.04,
+        "blind": 0.03,
     }
 
     diff_result = compute_difficulty(feature_dims, weights or default_weights)

@@ -9,3 +9,4 @@ venv/
 *.egg
 .ruff_cache/
 pics/
+archive/

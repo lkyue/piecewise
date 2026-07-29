@@ -23,16 +23,16 @@ def analyze_color_richness(image_bgr, bins=180, threshold=0.001):
 
     if significant_colors < 6:
         level = "minimal"
-        score = 0.95
+        score = 2.30
     elif significant_colors < 15:
         level = "low"
-        score = 0.75
+        score = 1.50
     elif significant_colors < 30:
         level = "moderate"
-        score = 0.40
+        score = 1.00
     else:
         level = "high"
-        score = 0.15
+        score = 0.45
 
     return {
         "significant_hues": significant_colors,
@@ -70,16 +70,16 @@ def analyze_color_clustering(image_bgr, n_segments=200, compactness=20):
 
     if avg_diff > 30:
         level = "scattered"
-        factor = 0.20
+        factor = 0.35
     elif avg_diff > 15:
         level = "moderate_clumping"
-        factor = 0.50
+        factor = 1.00
     elif avg_diff > 8:
         level = "large_patches"
-        factor = 0.75
+        factor = 1.30
     else:
         level = "monolithic"
-        factor = 0.95
+        factor = 2.40
 
     return {
         "mean_adjacent_color_diff": round(float(avg_diff), 2),
@@ -108,7 +108,7 @@ def analyze_texture_complexity(image_bgr):
     max_entropy = np.log2(n_points + 2)
     texture_score = 1.0 - (texture_entropy / max_entropy) if max_entropy > 0 else 0.5
 
-    edge_factor = 0.95 - 0.80 * min(edge_density / 0.15, 1.0)
+    edge_factor = 2.50 - 2.20 * min(edge_density / 0.15, 1.0)
 
     if edge_density > 0.15:
         edge_level = "rich"
@@ -160,16 +160,16 @@ def analyze_pattern_repetition(image_bgr):
 
     if secondary_max < 0.05:
         level = "unique"
-        factor = 0.80
+        factor = 0.65
     elif secondary_max < 0.15:
         level = "slightly_repetitive"
-        factor = 0.95
+        factor = 1.00
     elif secondary_max < 0.30:
         level = "moderately_repetitive"
-        factor = 1.10
+        factor = 1.30
     else:
         level = "highly_repetitive"
-        factor = 1.25
+        factor = 2.10
 
     return {
         "periodicity_peak": round(secondary_max, 4),
@@ -184,19 +184,19 @@ def analyze_sharpness(image_bgr):
 
     if lap_var < 20:
         level = "very_blurry"
-        factor = 1.10
+        factor = 1.70
     elif lap_var < 60:
         level = "blurry"
-        factor = 1.05
+        factor = 1.30
     elif lap_var < 150:
         level = "normal"
         factor = 1.00
     elif lap_var < 400:
         level = "sharp"
-        factor = 0.95
+        factor = 0.85
     else:
         level = "very_sharp"
-        factor = 0.92
+        factor = 0.75
 
     return {
         "laplacian_variance": round(float(lap_var), 1),

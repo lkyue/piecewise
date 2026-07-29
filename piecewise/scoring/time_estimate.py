@@ -1,44 +1,48 @@
-"""Time estimation based on difficulty score and piece count."""
+"""Time estimation based on difficulty score and piece count.
+
+Reference benchmarks (moderate difficulty, score ≈ 1.0):
+  500pcs:    3–5h    → ref_500h = 4.0
+  1000pcs:   6–10h   → piece_scale = 2.0
+  1500pcs:  10–18h   → piece_scale = 3.5
+  2000pcs:  15–25h   → piece_scale = 5.0
+  3000pcs:  25–50h   → piece_scale = 9.375
+
+Formula:  estimated = ref_500h * piece_scale(n) * score ^ 1.5
+"""
 
 
 def estimate_time(difficulty_score, num_pieces):
-    base_piece_factors = {
+    ref_hours_for_500 = 4.0
+
+    piece_scales = {
         100: 0.3,
         300: 0.6,
         500: 1.0,
         750: 1.8,
-        1000: 3.0,
-        1500: 5.5,
-        2000: 9.0,
-        3000: 17.0,
-        4000: 28.0,
-        5000: 40.0,
+        1000: 2.0,
+        1500: 3.5,
+        2000: 5.0,
+        3000: 9.375,
+        4000: 15.0,
+        5000: 25.0,
     }
 
-    keys = sorted(base_piece_factors.keys())
-    piece_factor = base_piece_factors[keys[0]]
+    keys = sorted(piece_scales.keys())
+    piece_scale = piece_scales[keys[0]]
     if num_pieces >= keys[-1]:
-        piece_factor = base_piece_factors[keys[-1]]
+        piece_scale = piece_scales[keys[-1]]
     elif num_pieces > keys[0]:
         for i in range(len(keys) - 1):
             if keys[i] <= num_pieces <= keys[i + 1]:
                 t = (num_pieces - keys[i]) / (keys[i + 1] - keys[i])
-                piece_factor = (
-                    base_piece_factors[keys[i]] * (1 - t)
-                    + base_piece_factors[keys[i + 1]] * t
+                piece_scale = (
+                    piece_scales[keys[i]] * (1 - t) + piece_scales[keys[i + 1]] * t
                 )
                 break
 
-    if difficulty_score < 0.8:
-        base_hours = 2.5
-    elif difficulty_score < 1.2:
-        base_hours = 4.0
-    elif difficulty_score < 1.7:
-        base_hours = 6.5
-    else:
-        base_hours = 10.0
+    difficulty_multiplier = max(difficulty_score, 0.3) ** 1.5
 
-    estimated = base_hours * piece_factor * (difficulty_score**0.8)
+    estimated = ref_hours_for_500 * piece_scale * difficulty_multiplier
     lower = estimated * 0.7
     upper = estimated * 1.3
 
