@@ -9,6 +9,14 @@ weights:
   backside: 0.04
   blind: 0.03
 
+# difficulty level thresholds
+levels:
+  easy: [0, 0.85]
+  moderate: [0.85, 1.00]
+  challenging: [1.00, 1.25]
+  hard: [1.25, 1.60]
+  very_hard: [1.60, 10.0]
+
 # difficulty_factor for each cut shape type
 cut_shape_factors:
   ribbon: 1.25
