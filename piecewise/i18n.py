@@ -256,6 +256,29 @@ TEXTURE_LEVELS = {"en": TEXTURE_LEVELS_EN, "zh": TEXTURE_LEVELS_ZH}
 COLOR_LEVELS = {"en": COLOR_LEVELS_EN, "zh": COLOR_LEVELS_ZH}
 PIECE_BRACKETS = {"en": PIECE_BRACKETS_EN, "zh": PIECE_BRACKETS_ZH}
 
+CUT_LABELS = {
+    "en": {
+        "ribbon": "Ribbon Cut",
+        "random": "Random Cut",
+        "irregular": "Irregular / Shaped",
+    },
+    "zh": {"ribbon": "规则切割", "random": "随机切割", "irregular": "异形切割"},
+}
+
+BACK_LABELS = {
+    "en": {
+        "none": "None",
+        "alphabet": "Alphabet Zones",
+        "pattern": "Pattern / Picture",
+    },
+    "zh": {"none": "无背面提示", "alphabet": "字母分区", "pattern": "背面图案"},
+}
+
+BLIND_LABELS = {
+    "en": {True: "Blind (no reference)", False: "With reference image"},
+    "zh": {True: "盲拼（无参考图）", False: "有参考图"},
+}
+
 
 def t(key, lang="en"):
     return T.get(lang, T["en"]).get(key, str(key))
@@ -291,3 +314,15 @@ def color_label(key, lang="en"):
 
 def piece_bracket_label(key, lang="en"):
     return PIECE_BRACKETS.get(lang, PIECE_BRACKETS["en"]).get(key, key)
+
+
+def cut_label(key, lang="en"):
+    return CUT_LABELS.get(lang, CUT_LABELS["en"]).get(key, key)
+
+
+def back_label(key, lang="en"):
+    return BACK_LABELS.get(lang, BACK_LABELS["en"]).get(key, key)
+
+
+def blind_label(key, lang="en"):
+    return BLIND_LABELS.get(lang, BLIND_LABELS["en"]).get(key, key)

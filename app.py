@@ -18,6 +18,9 @@ from piecewise.i18n import (
     texture_label,
     color_label,
     piece_bracket_label,
+    cut_label as i18n_cut_label,
+    back_label as i18n_back_label,
+    blind_label as i18n_blind_label,
     CUT_OPTIONS,
     BACK_OPTIONS,
 )
@@ -157,17 +160,17 @@ def meta_rows(result, lang):
         },
         {
             t("attr_col", lang): dim_label("cut_shape", lang),
-            t("value_col", lang): m["cut_shape"]["label"],
+            t("value_col", lang): i18n_cut_label(m["cut_shape"]["cut_type"], lang),
             t("base_diff_col", lang): f"{m['cut_shape']['difficulty_factor']:.2f}",
         },
         {
             t("attr_col", lang): dim_label("backside", lang),
-            t("value_col", lang): m["backside"]["label"],
+            t("value_col", lang): i18n_back_label(m["backside"]["back_type"], lang),
             t("base_diff_col", lang): f"{m['backside']['difficulty_factor']:.2f}",
         },
         {
             t("attr_col", lang): dim_label("blind", lang),
-            t("value_col", lang): m["blind"]["label"],
+            t("value_col", lang): i18n_blind_label(m["blind"]["blind"], lang),
             t("base_diff_col", lang): f"{m['blind']['difficulty_factor']:.2f}",
         },
     ]
