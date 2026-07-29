@@ -17,27 +17,27 @@ LEVELS_ZH = {
 }
 
 CUT_OPTIONS_EN = {
-    "Ribbon Cut (规则切割)": "ribbon",
-    "Random Cut (随机切割)": "random",
-    "Shaped / Irregular (异形切割)": "irregular",
+    "Ribbon Cut": "ribbon",
+    "Random Cut": "random",
+    "Shaped / Irregular": "irregular",
 }
 
 CUT_OPTIONS_ZH = {
-    "规则切割 (Ribbon Cut)": "ribbon",
-    "随机切割 (Random Cut)": "random",
-    "异形切割 (Irregular / Shaped)": "irregular",
+    "规则切割": "ribbon",
+    "随机切割": "random",
+    "异形切割": "irregular",
 }
 
 BACK_OPTIONS_EN = {
-    "None (无背面提示)": "none",
-    "Alphabet Zones (字母分区)": "alphabet",
-    "Pattern / Picture (背面图案)": "pattern",
+    "None": "none",
+    "Alphabet Zones": "alphabet",
+    "Pattern / Picture": "pattern",
 }
 
 BACK_OPTIONS_ZH = {
-    "无背面提示 (None)": "none",
-    "字母分区 (Alphabet Zones)": "alphabet",
-    "背面图案 (Pattern / Picture)": "pattern",
+    "无背面提示": "none",
+    "字母分区": "alphabet",
+    "背面图案": "pattern",
 }
 
 DIM_LABELS_EN = {
