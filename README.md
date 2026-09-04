@@ -1,83 +1,177 @@
-# Jigsaw Puzzle Difficulty Analyzer
+# Piecewise 🧩
 
-This Python script provides an estimated difficulty level and completion time for a jigsaw puzzle based on its number of pieces and the complexity of its image.
+**Systematic jigsaw puzzle difficulty and completion-time estimation.**
 
-## How It Works: The Methodology
+Point Piecewise at a picture of your puzzle (the box art works great), tell it the piece count, and get a difficulty score, a qualitative level, and an estimated time range — powered by image analysis, not gut feeling.
 
-The script breaks down puzzle difficulty into two main components:
+- **CLI** — analyze a puzzle with a single command, output as text, JSON, or Markdown
+- **Web UI** — a bilingual (English / 中文) Streamlit app with visual breakdown charts
+- **Python API** — call `analyze()` directly from your own code
 
-### 1. Number of Pieces
+## Installation
 
-This is the most significant factor. The script uses a baseline time estimate that grows with the number of pieces. This relationship is not linear; a 1000-piece puzzle is significantly more than twice as hard as a 500-piece one. The script models this increasing difficulty using a power function.
+Requires Python 3.9+.
 
-### 2. Image Complexity
+```bash
+git clone <this-repo>
+cd piecewise
+pip install -e .
 
-This is where the image analysis comes in. A 1000-piece puzzle of a clear, colorful collage is much easier than a 1000-piece puzzle of a solid blue sky. The script quantifies this by measuring two key aspects of the image:
-
-* **Color Variety**:
-  * The script analyzes the image's color histogram to see how many distinct colors are present.
-  * **Easier puzzles** have a wide range of different colors, allowing you to sort pieces into groups (e.g., "all the red pieces," "all the green pieces").
-  * **Harder puzzles** have large areas of similar colors (like sky, water, or grass), making it difficult to distinguish between pieces.
-  * The script generates a `color_score` from 0 to 1. A higher score means more color variety (easier).
-* **Edge Density**:
-  * Using the Canny edge detection algorithm, the script identifies all the distinct lines and edges within the image.
-  * **Easier puzzles** have many clear, sharp edges that define objects, textures, and patterns. This helps you identify which pieces belong to which part of the picture.
-  * **Harder puzzles** have blurry, out-of-focus areas or large gradients with very few defined edges.
-  * The script generates an `edge_score` from 0 to 1. A higher score means more defined edges (easier).
-
-### 3. The Final Calculation
-
-The script combines these factors into a final estimation:
-
-1. It calculates a `complexity_score` for the image by combining the `color_score` and `edge_score`. It gives slightly more weight to color variety. A higher `complexity_score` means a more difficult image.
-2. It calculates a base time purely from the number of pieces.
-3. It then adjusts this base time using the image's `complexity_score` to get a final estimated time range.
-4. It also calculates an overall `difficulty_score` to give you a single number representing the puzzle's challenge, and translates this into a qualitative level like "Easy," "Moderate," or "Challenging."
-
-## How to Use the Script
-
-### 1. Prerequisites
-
-You need to have Python installed on your computer. You will also need to install a few libraries. You can install them using `pip`:
-
-```
-pip install opencv-python-headless Pillow numpy
+# with the Streamlit web UI
+pip install -e ".[ui]"
 ```
 
-*`Pillow` is an image processing library, `opencv-python-headless` is for computer vision tasks, and `numpy` is for numerical operations.*
+Core dependencies: `opencv-python-headless`, `numpy`, `Pillow`, `scikit-image`, `PyYAML`.
 
-### 2. Prepare Your Image
+## Usage
 
-Save a clear, well-lit image of the puzzle you want to analyze on your computer. The image on the box is perfect for this. Note the file path to this image.
+### CLI
 
-### 3. Edit the Script
-
-Open the `puzzle_analyzer.py` file in a text editor. At the bottom of the script, you will find the `if __name__ == '__main__':` block. Change the following two lines:
-
-```
-# --- USER INPUT ---
-PUZZLE_IMAGE_PATH = "path/to/your/puzzle_image.jpg"  # <--- CHANGE THIS
-PUZZLE_PIECES = 1000                                # <--- CHANGE THIS
+```bash
+piecewise analyze -i box.jpg -p 1000
 ```
 
-* Replace `"path/to/your/puzzle_image.jpg"` with the actual file path to your puzzle image.
-* Replace `1000` with the number of pieces in your puzzle.
+| Flag | Description | Default |
+|------|-------------|---------|
+| `-i`, `--image` | Path to the puzzle image (required) | — |
+| `-p`, `--pieces` | Number of pieces (required) | — |
+| `-c`, `--cut` | Piece cut type: `ribbon`, `random`, `irregular` | `ribbon` |
+| `-b`, `--back` | Backside hints: `none`, `alphabet`, `pattern` | `none` |
+| `--blind` | Puzzle has no reference image (blind puzzle) | off |
+| `-f`, `--format` | Output format: `text`, `json`, `markdown` | `text` |
 
-### 4. Run the Script
+Example with the full report:
 
-Open a terminal or command prompt, navigate to the directory where you saved the script, and run it using:
+```bash
+piecewise analyze -i box.jpg -p 1000 --cut random --back alphabet -f markdown
+```
+
+Sample output (`text` format):
 
 ```
-python puzzle_analyzer.py
+==================================================
+Puzzle Difficulty Analysis
+==================================================
+
+[Pieces] 1000 pieces (medium) — base difficulty: 1.275
+
+[Image Analysis]
+  Color Richness:   178 significant hues (sat ratio=0.99) [high]  difficulty: 0.450
+  Color Clustering:  ΔE=55.73 [scattered]  difficulty: 0.350
+  Texture:           edges: 0.0547 [sparse], entropy=2.574 [varied]  difficulty: 1.035
+  Pattern:           periodicity=0.3802 [highly_repetitive]  difficulty: 2.100
+  Sharpness:         Laplacian var=1111.9 [very_sharp]  difficulty: 0.750
+
+[Metadata]
+  Cut Shape:   规则切割 (Ribbon Cut)  factor: 1.25
+  Backside:    无背面提示  factor: 1.00
+  Reference:   有参考图  factor: 1.00
+
+[Difficulty]
+  Total Score: 0.893
+  Level:       Moderate
+  Breakdown:   pieces=1.275 | color_richness=0.450 | ...
+
+[Time Estimate]
+  Range:       4.7h – 8.8h
+  Best case:   4.7 hours
+  Worst case:  8.8 hours
+==================================================
 ```
 
-The script will print out its analysis, including the difficulty level and estimated completion time.
+### Web UI
+
+```bash
+pip install -e ".[ui]"
+streamlit run app.py
+```
+
+Upload a photo of the puzzle, set the piece count and metadata, and hit **Analyze**. The app shows the difficulty score, level, time range, a per-dimension bar chart, and full feature tables — switchable between English and 中文 via the sidebar.
+
+### Python API
+
+```python
+from piecewise.analyser import analyze
+
+result = analyze("box.jpg", pieces=1000, cut="random", back="alphabet")
+
+print(result["difficulty"]["level"])        # e.g. "Moderate"
+print(result["difficulty"]["dimensions"])   # per-dimension difficulty factors
+print(result["time_estimate"]["range_hours"])  # e.g. "4.7h – 8.8h"
+```
+
+`analyze()` also accepts `weights` (per-dimension weight overrides) and `config` (tuning parameters) for custom models.
+
+## How It Works
+
+Piecewise models difficulty as **nine weighted dimensions**. Each analyzer produces a *difficulty factor* (higher = harder), and the weighted sum becomes the total difficulty score.
+
+| Dimension | Weight | Measured by | Harder when... |
+|-----------|-------:|-------------|----------------|
+| Piece count | 0.10 | Power law `(n / 500)^0.35` | More pieces |
+| Color richness | 0.24 | Hue histogram of saturated pixels | Fewer distinct hues — big areas of similar color (sky, water, grass) are hard to sort |
+| Color clustering | 0.21 | SLIC superpixels + mean ΔE between adjacent regions | Colors clump into large uniform patches |
+| Texture complexity | 0.13 | Canny edge density + local-binary-pattern entropy | Few defined edges / featureless texture |
+| Pattern repetition | 0.12 | FFT-based autocorrelation periodicity | Repeating patterns make pieces interchangeable |
+| Sharpness | 0.07 | Laplacian variance | Blurry, low-contrast images |
+| Cut shape | 0.06 | Metadata: ribbon ×1.25, random ×0.85, shaped ×0.60 | — |
+| Backside hints | 0.04 | Metadata: none ×1.00, alphabet zones ×0.70, printed pattern ×0.45 | — |
+| Blind puzzle | 0.03 | No reference image ×1.60 | — |
+
+### Difficulty Levels
+
+| Score | Level |
+|-------|-------|
+| < 0.85 | Easy |
+| 0.85 – 1.00 | Moderate |
+| 1.00 – 1.25 | Challenging |
+| 1.25 – 1.60 | Hard |
+| ≥ 1.60 | Very Hard |
+
+### Time Estimation
+
+Time is anchored to a reference benchmark: a **500-piece puzzle of moderate difficulty (score 1.0) takes ~4 hours**.
+
+```
+estimated = 4h × piece_scale(n) × score^1.5
+```
+
+- `piece_scale(n)` is calibrated to real-world benchmarks and interpolated for in-between counts (e.g. ×2.0 at 1000 pcs, ×5.0 at 2000 pcs, ×25 at 5000 pcs).
+- The `score^1.5` multiplier scales time super-linearly with difficulty.
+- The result is reported as a **±30% range** (best case / worst case).
+
+## Configuration
+
+Model tuning lives in [`config/default.yaml`](config/default.yaml): dimension weights, difficulty-level thresholds, cut/backside/blind factors, the piece-count model, time calibration curves, and binning for each image feature. The CLI and web app use built-in defaults that mirror this file; the Python API lets you override weights and parameters programmatically.
+
+## Project Structure
+
+```
+piecewise/
+├── app.py                      # Streamlit web UI (English / 中文)
+├── config/
+│   └── default.yaml            # Model tuning: weights, thresholds, calibration
+├── piecewise/
+│   ├── cli.py                  # `piecewise` command-line interface
+│   ├── analyser.py             # Orchestrator + text / JSON / Markdown reports
+│   ├── i18n.py                 # UI strings (English / Chinese)
+│   ├── features/
+│   │   ├── image_features.py   # Color, texture, pattern, sharpness analysis
+│   │   ├── piece_features.py   # Piece-count model
+│   │   └── meta_features.py    # Cut shape, backside, blind-puzzle factors
+│   ├── scoring/
+│   │   ├── difficulty.py       # Weighted difficulty score + levels
+│   │   └── time_estimate.py    # Completion-time estimation
+│   └── utils/
+│       └── image_utils.py      # Image loading helpers
+└── archive/                    # Original single-file prototype
+```
 
 ## Limitations
 
-This tool provides a sophisticated estimate, but it's important to understand its limitations:
+This tool produces an informed estimate, not a guarantee:
 
-* **Piece Shape:** It cannot analyze the cut of the puzzle pieces. Unusually shaped or "random cut" pieces can add significant difficulty.
-* **Image Quality:** The analysis depends on the quality of the image you provide. A blurry or poorly lit photo will not produce an accurate result.
-* **Puzzler's Skill:** The time estimate is for an "average" puzzler. Your own experience, strategy, and even your mood can greatly affect your completion time.
-* **Environment:** A dedicated, well-lit puzzling space makes a big difference.
+- **Piece cut** — the cut-shape model is a simple metadata factor; it can't see the actual die cut, piece size variation, or false-fit potential.
+- **Image quality** — results depend on the photo you provide. A blurry or poorly lit image skews the sharpness and texture measurements (use the box art when possible).
+- **Puzzler skill** — time estimates assume an average puzzler; experience, strategy, and mood matter a lot.
+- **Environment** — a dedicated, well-lit puzzling space makes a real difference.
